@@ -1,0 +1,8 @@
+# Install: pip install -r requirements.txt
+Flask
+Flask-RESTful
+Flask-Cors
+Flask-MySQLdb
+mysqlclient
+redis
+python-dotenv
