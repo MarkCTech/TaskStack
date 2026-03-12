@@ -1,0 +1,17 @@
+# Local secrets — copy from .env.example
+.env
+
+# Virtual environment
+.venv/
+venv/
+
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+
+# Frontend clone + build (generated locally)
+client/frontend-src/
+client/webapp_build/
+node_modules/
+.vs/
+react/

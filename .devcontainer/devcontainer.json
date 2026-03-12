@@ -1,0 +1,16 @@
+{
+  "name": "TaskStack",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bullseye",
+  "postCreateCommand": "python3 -m venv .venv && .venv/bin/pip install --upgrade pip && .venv/bin/pip install -r requirements.txt -r requirements-dev.txt",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/workspace/.venv/bin/python"
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+      ]
+    }
+  }
+}
