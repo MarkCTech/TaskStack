@@ -1,9 +1,10 @@
 import re
 
 import MySQLdb.cursors
-from flask import Flask, jsonify, request, redirect, url_for
+from flask import Flask, jsonify, request, redirect, url_for, session
 from flask_mysqldb import MySQL
 from flask_restful import Resource, Api, reqparse
+from flask_cors import CORS
 
 
 # Defining globals
@@ -31,23 +32,87 @@ class Square(Resource):
         return jsonify({'square': num ** 2})
 
 
-class Login(Resource):
+class Register(Resource):
+    # def get(self):
+    #     return jsonify({'message': 'Registration Page'})
+
     def post(self):
+        msg = ''
+
+        # Parse the arguments
+        parser = reqparse.RequestParser()
+        parser.add_argument('username', type=str, help='Registration Username')
+        parser.add_argument('password', type=str, help='Registration Password')
+        args = parser.parse_args()
+
+        _userUser = args['username']
+        _userPassword = args['password']
+
+        if not _userUser or not _userPassword:
+            msg = 'Please fill out the form !'
+            return {'msg': msg}, 403
+
+        elif not re.match(r'[A-Za-z0-9]+', _userUser):
+            msg = 'Username must contain only characters and numbers !'
+            return {'msg': msg}, 403
+
         try:
-            # Parse the arguments
-            parser = reqparse.RequestParser()
-            parser.add_argument('username', type=str, help='Sql Username')
-            parser.add_argument('password', type=str, help='Sql Password')
-            args = parser.parse_args()
+            cursor = mysql.connection.cursor()
+            cursor.execute('''SELECT * FROM accounts WHERE username = (%s) ''', (_userUser, ))
+            account = cursor.fetchone()
+            if account:
+                msg = 'Account already exists !'
+                return {'msg': msg}, 405
 
-            _userUser = args['username']
-            _userPassword = args['password']
-
-            return {'Username': args['username'], 'Password': args['password']}
+            cursor.execute('INSERT INTO accounts (username, password) VALUES (%s, %s)', (_userUser, _userPassword))
+            mysql.connection.commit()
+            msg = 'You have successfully registered!'
+            print(msg)
+            return {'msg': msg}, 201
 
         except Exception as e:
             print(str(e))
-            return {'error': "Could not log in"}
+            msg = "Registration Error"
+            return {'msg': msg}, 400
+
+
+class Login(Resource):
+    # def get(self):
+    #     return jsonify({'message': 'Login Page'})
+
+    def post(self):
+        msg = ''
+        # Parse the arguments
+        parser = reqparse.RequestParser()
+        parser.add_argument('username', type=str, help='Login Username')
+        parser.add_argument('password', type=str, help='Login Password')
+        args = parser.parse_args()
+
+        _userUser = args['username']
+        _userPassword = args['password']
+
+        if not _userUser or not _userPassword:
+            msg = 'Please fill out the form !'
+            return {'msg': msg}, 403
+
+        try:
+            cursor = mysql.connection.cursor()
+            cursor.execute('''SELECT * FROM accounts WHERE username = (%s) and password = (%s)''',
+                           (_userUser, _userPassword))
+            account = cursor.fetchone()
+            if account:
+                session['loggedin'] = True
+                session['id'] = account['id']
+                session['username'] = account['username']
+                msg = 'Logged in successfully !'
+                return {'msg': msg}, 201
+
+            msg = 'Username/Password Invalid'
+            return {'msg': msg}, 403
+
+        except Exception as e:
+            print(str(e))
+            return {'msg': "Login Error"}, 400
 
 
 class AllTasks(Resource):
@@ -62,7 +127,7 @@ class AllTasks(Resource):
                 return jsonify(all_tasks)
         except Exception as e:
             print(str(e))
-            return {'error': "Could not get all Tasks"}
+            return {'error': "Could not get all Tasks"}, 400
 
     def post(self):
         # Parse request for json, to create a task
@@ -93,7 +158,7 @@ class AllTasks(Resource):
 
         except Exception as e:
             print(str(e))
-            return {'error': "Could not post Task"}
+            return {'error': "Could not post Task"}, 400
 
 
 class TaskDetail(Resource):
@@ -109,7 +174,7 @@ class TaskDetail(Resource):
                 return jsonify(all_tasks)
         except Exception as e:
             print(str(e))
-            return {'error': "Could not get Task by ID"}
+            return {'error': "Could not get Task by ID"}, 400
 
     def put(self, task_id):
         print("Updating details for Task")
@@ -139,7 +204,7 @@ class TaskDetail(Resource):
 
         except Exception as e:
             print(str(e))
-        return {'error': "Could not update Task details"}
+        return {'error': "Could not update Task details"}, 400
 
     def delete(self, task_id):
         print("Attempting to delete Task by ID")
@@ -154,7 +219,7 @@ class TaskDetail(Resource):
 
         except Exception as e:
             print(str(e))
-            return {'error': "Could not update Task details"}
+            return {'error': "Could not update Task details"}, 400
 
 
 class StaticServe(Resource):
@@ -188,6 +253,7 @@ def init_mysql_api_app():
             cursor.execute('''INSERT INTO tasklist (title) VALUES ('Test')''')
 
             # Create accounts table, populate with a test entry
+            cursor.execute('DROP TABLE IF EXISTS accounts')
             cursor.execute('''CREATE TABLE IF NOT EXISTS accounts (
                         id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
                         username VARCHAR(100) NOT NULL,
@@ -210,6 +276,7 @@ def init_mysql_api_app():
         # creating a Flask app
         global app
         app = Flask(__name__, static_folder='./react/task_app/build', static_url_path='/')
+        CORS(app)
 
         # creating an API object
         global api
@@ -233,6 +300,7 @@ def mysql_login():
     database = "py_tasks"
     username = input("Username: ")
     password = input("Password: ")
+    app.secret_key = 'your secret key'
     app.config['MYSQL_USER'] = username
     app.config['MYSQL_PASSWORD'] = password
     app.config['MYSQL_HOST'] = 'localhost'
@@ -242,57 +310,6 @@ def mysql_login():
     # create MySql object
     global mysql
     mysql = MySQL(app)
-
-#
-# def post(self):
-#     try:
-#         # Parse the arguments
-#         parser = reqparse.RequestParser()
-#         parser.add_argument('username', type=str, help='Sql Username')
-#         parser.add_argument('password', type=str, help='Sql Password')
-#         args = parser.parse_args()
-#
-#         _userUser = args['username']
-#         _userPassword = args['password']
-#
-#         return {'Username': args['username'], 'Password': args['password']}
-#
-#     except Exception as e:
-#         print(str(e))
-#         return {'error': "Could not log in"}
-
-
-class Register(Resource):
-    def post(self):
-        msg = ''
-
-        # Parse the arguments
-        parser = reqparse.RequestParser()
-        parser.add_argument('username', type=str, help='Registration Username')
-        parser.add_argument('password', type=str, help='Registration Password')
-        args = parser.parse_args()
-
-        _userUser = args['username']
-        _userPassword = args['password']
-
-        if _userUser and _userPassword:
-
-            cursor = mysql.connection.cursor()
-            cursor.execute('''SELECT * FROM accounts WHERE username = (%s) ''', (_userUser, ))
-            account = cursor.fetchone()
-            if account:
-                msg = 'Account already exists !'
-            elif not re.match(r'[A-Za-z0-9]+', _userUser):
-                msg = 'Username must contain only characters and numbers !'
-            elif not _userUser or not _userPassword:
-                msg = 'Please fill out the form !'
-            else:
-                cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s)', (_userUser, _userPassword))
-                mysql.connection.commit()
-                msg = 'You have successfully registered !'
-        elif request.method == 'POST':
-            msg = 'Please fill out the form !'
-        return {'msg': msg}
 
 
 def main():
