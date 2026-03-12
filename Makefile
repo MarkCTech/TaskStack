@@ -1,7 +1,3 @@
-# Used by scripts/build_frontend.py (reads these lines)
-FRONTEND_REPO := https://github.com/MarkCTech/user_todos.git
-FRONTEND_BRANCH := master
-
 VENV ?= .venv
 
 ifeq ($(OS),Windows_NT)

@@ -414,7 +414,7 @@ def init_mysql_api_app():
 
         # creating a Flask app
         global app
-        # Production build: default client/webapp_build (see Makefile frontend-build + client/README.md)
+        # Production build: default client/webapp_build (see scripts/build_frontend.py + client/README.md)
         _static = os.environ.get('FRONTEND_STATIC_FOLDER', './client/webapp_build')
         app = Flask(__name__, static_folder=_static, static_url_path='/')
         cors_origins = os.environ.get('CORS_ORIGINS')

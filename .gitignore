@@ -9,9 +9,10 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 
-# Frontend clone + build (generated locally)
-client/frontend-src/
+# Frontend build output (source is client/frontend/)
 client/webapp_build/
+# In-repo app lives under client/frontend — ignore deps only
+client/frontend/node_modules/
 node_modules/
 .vs/
 react/

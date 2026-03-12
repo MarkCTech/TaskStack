@@ -111,20 +111,15 @@ The rest of `.env.example` is usually fine for local use.
 
 ### Step 4 — Build the frontend
 
-The React app must be built into `client/webapp_build`.
+The React app lives in **`client/frontend/`** (committed with this repo) and is built into **`client/webapp_build`**.
 
-Set the frontend git URL and branch at the top of the **Makefile** (`FRONTEND_REPO`, `FRONTEND_BRANCH`). 
-The build script reads those lines.
-
-Then run:
+Run:
 
 >```bash
 >python scripts/build_frontend.py
 >```
 
-Run it again only when the frontend repo changes.
-
-To start over, delete the folders `client/frontend-src` and `client/webapp_build`, then run the script again.
+Run again after frontend changes. To clean and rebuild, delete **`client/webapp_build`** (and optionally **`client/frontend/node_modules`**) then run the script again.
 
 ---
 
