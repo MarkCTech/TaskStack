@@ -15,3 +15,4 @@ client/webapp_build/
 node_modules/
 .vs/
 react/
+scripts/local/
