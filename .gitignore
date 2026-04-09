@@ -14,4 +14,5 @@ client/frontend-src/
 client/webapp_build/
 node_modules/
 .vs/
+.cursor/
 react/
